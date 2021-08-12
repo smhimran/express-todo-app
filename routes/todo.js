@@ -4,11 +4,12 @@ const Todo = require("../models/todo");
 const route = express.Router();
 
 route.get("/", (req, res) => {
-  Todo.find({}).select({
-    _id: 0,
-    done: 0,
-    __v: 0
-  })
+  Todo.find({})
+    .select({
+      // _id: 0,
+      done: 0,
+      __v: 0,
+    })
     .exec()
     .then((docs) => {
       res.status(200).json(docs);
@@ -32,32 +33,51 @@ route.post("/", (req, res) => {
 });
 
 route.get("/:id", (req, res) => {
-  Todo.find({ _id: req.params.id })
+  Todo.findById({ _id: req.params.id })
     .exec()
     .then((docs) => {
-      res.status(200).json(docs);
+      if (docs) {
+
+        res.status(200).json(docs);
+      } else {
+        res.status(404).json({
+          message: "The requested item was not found!"
+        })
+      }
     })
     .catch((error) => {
       res.status(404).json(error);
     });
 });
 
-route.put('/:id', (req, res) => {
-  Todo.findByIdAndUpdate({_id: req.params.id}, {
-    $set: {
-      ...req.body
-    }, 
-    
-  },
-  {
-    new: true,
-    useFindAndModify: false
-  }
-  ).then(result => {
+route.put("/:id", (req, res) => {
+  Todo.findByIdAndUpdate(
+    { _id: req.params.id },
+    {
+      $set: {
+        ...req.body,
+      },
+    },
+    {
+      new: true,
+      useFindAndModify: false,
+    }
+  )
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+
+route.delete("/:id", (req, res) => {
+  Todo.deleteOne({_id: req.params.id})
+  .then(result => {
     res.status(200).json(result)
   }).catch(err => {
-    res.status(500).json(err)
+    res.status(404).json(err)
   })
-})
+});
 
 module.exports = route;
