@@ -4,19 +4,36 @@ const Todo = require("../models/todo");
 const route = express.Router();
 
 route.get("/", (req, res) => {
-  Todo.find({})
+  if (!!req.query.word) {
+    const word = req.query.word
+    Todo.find().byWord(word)
     .select({
-      // _id: 0,
-      done: 0,
-      __v: 0,
+        // _id: 0,
+        done: 0,
+        __v: 0,
+      })
+    .then(docs => {
+      res.status(200).json(docs)
     })
-    .exec()
-    .then((docs) => {
-      res.status(200).json(docs);
+    .catch(err => {
+      res.status(404).json(docs)
     })
-    .catch((error) => {
-      res.status(404).json(error);
-    });
+  }
+  else {
+    Todo.find({})
+      .select({
+        // _id: 0,
+        done: 0,
+        __v: 0,
+      })
+      .exec()
+      .then((docs) => {
+        res.status(200).json(docs);
+      })
+      .catch((error) => {
+        res.status(404).json(error);
+      });
+  }
 });
 
 route.post("/", (req, res) => {
@@ -32,17 +49,37 @@ route.post("/", (req, res) => {
     });
 });
 
+route.get("/active", (req, res) => {
+  const todo = new Todo();
+  todo.findActive()
+    .then((docs) => {
+      res.status(200).json(docs);
+    })
+    .catch((err) => {
+      res.status(500).json(err.message);
+    });
+});
+
+route.get('/findReact', (req, res) => {
+  Todo.findReact()
+  .then(docs => {
+    res.status(200).json(docs)
+  })
+  .catch(err => {
+    res.status(500).json(err)
+  })
+})
+
 route.get("/:id", (req, res) => {
   Todo.findById({ _id: req.params.id })
     .exec()
     .then((docs) => {
       if (docs) {
-
         res.status(200).json(docs);
       } else {
         res.status(404).json({
-          message: "The requested item was not found!"
-        })
+          message: "The requested item was not found!",
+        });
       }
     })
     .catch((error) => {
@@ -72,12 +109,13 @@ route.put("/:id", (req, res) => {
 });
 
 route.delete("/:id", (req, res) => {
-  Todo.deleteOne({_id: req.params.id})
-  .then(result => {
-    res.status(200).json(result)
-  }).catch(err => {
-    res.status(404).json(err)
-  })
+  Todo.deleteOne({ _id: req.params.id })
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(404).json(err);
+    });
 });
 
 module.exports = route;
