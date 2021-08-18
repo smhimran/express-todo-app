@@ -2,11 +2,15 @@
 const express = require("express");
 const logger = require("morgan");
 const mongoose = require("mongoose");
+const dotenv = require('dotenv')
 
 // Routes
+const userRoute = require("./routes/user");
 const todoRoute = require("./routes/todo");
 
 const app = express();
+
+dotenv.config()
 
 const port = 5000;
 
@@ -25,6 +29,7 @@ app.use(logger("dev"));
 app.use(express.json());
 
 // Routes
+app.use("/user", userRoute);
 app.use("/todo", todoRoute);
 
 app.all("*", (req, res, next) => {
